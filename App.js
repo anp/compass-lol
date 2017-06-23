@@ -1,35 +1,55 @@
 // @flow
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Animated, Image, StyleSheet, Text, View } from 'react-native';
 import { KeepAwake, Location } from 'expo';
 import debounce from 'lodash.debounce';
 
 let locationWatcher = null;
 
-export default class App extends React.Component {
+class Compass extends React.Component {
   constructor() {
     super();
-    this.state = { heading: 0, accuracy: 0 };
+    this.state = { heading: new Animated.Value(0), accuracy: 0 };
 
-    this.setStateDebounced = debounce(this.setState, 5);
+    this.onRotateDebounced = debounce(this.onRotate, 100);
+  }
+
+  onRotate(heading) {
+    Animated.timing(this.state.heading, {
+      toValue: 360 - heading,
+      duration: 170,
+    }).start();
   }
 
   componentWillMount() {
     if (!locationWatcher) {
       locationWatcher = Location.watchHeadingAsync(({ magHeading, trueHeading, accuracy }) => {
-      console.log(magHeading, trueHeading, accuracy);
-
-      this.setStateDebounced({ heading: trueHeading || magHeading, accuracy });
-    });
+        this.onRotateDebounced(trueHeading || magHeading);
+      });
     }
   }
 
   render() {
+    let rotationAmount = this.state.heading.interpolate({
+      inputRange: [0, 360],
+      outputRange: ['0deg', '360deg'],
+    });
+
+    return(<Animated.View
+          style={{transform: [{ rotate: rotationAmount }]}}>
+          <Text>north</Text>
+          <Image style={{ width: 150, height: 150 }}
+            source={require('./assets/hotdog.gif')}/>
+          </Animated.View>);
+  }
+}
+
+export default class App extends React.Component {
+  render() {
     return (
       <View style={styles.container}>
         <KeepAwake/>
-        <Text>{this.state.heading}</Text>
-        <Text>{this.state.accuracy}</Text>
+        <Compass/>
       </View>
     );
   }
