@@ -1,7 +1,7 @@
 // @flow
 import React from 'react';
 import { Animated, Image, StyleSheet, Text, View } from 'react-native';
-import { KeepAwake, Location } from 'expo';
+import { KeepAwake, Location, Permissions } from 'expo';
 import debounce from 'lodash.debounce';
 
 let locationWatcher = null;
@@ -46,11 +46,26 @@ class Compass extends React.Component {
 }
 
 export default class App extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      errorMessage: '',
+    };
+  }
+  async componentWillMount() {
+    let { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== 'granted') {
+      this.setState({
+        errorMessage: 'ahhh',
+      });
+    }
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <KeepAwake/>
-        <Compass/>
+        {this.state.errorMessage === 'ahhh' ? <Text>'lol you should have accepted'</Text> : <Compass/>}
       </View>
     );
   }
