@@ -40,6 +40,7 @@ class Compass extends React.Component {
           <Text>north</Text>
           <Image style={{ width: 150, height: 150 }}
             source={require('./assets/hotdog.gif')}/>
+          <Text>accuracy: {this.state.accuracy}</Text>
           </Animated.View>);
   }
 }
